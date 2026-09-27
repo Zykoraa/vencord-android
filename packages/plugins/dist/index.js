@@ -4,4 +4,5 @@ export * from "./builtins/silentTyping.js";
 export * from "./builtins/customTimestamps.js";
 export * from "./builtins/showHiddenChannels.js";
 export * from "./builtins/developerTools.js";
+export * from "./builtins/disableCallIdle.js";
 //# sourceMappingURL=index.js.map

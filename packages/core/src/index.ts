@@ -9,9 +9,11 @@ import {
     customTimestampsPlugin,
     showHiddenChannelsPlugin,
     developerToolsPlugin,
+    disableCallIdlePlugin,
     type PluginContext
 } from "@vencord-mobile/plugins";
 import { SettingsView } from "./ui/SettingsView.js";
+import { setupVencordCompatAPI, adaptVencordPlugin } from "./compat/vencordPluginAdapter.js";
 
 const logger = {
     log: (...args: any[]) => console.log("[VencordMobile]", ...args),
@@ -28,6 +30,7 @@ export class VencordMobile {
     public readonly ui = ui;
     public readonly plugins = pluginManager;
     public readonly logger = logger;
+    public readonly adaptVencordPlugin = adaptVencordPlugin;
 
     private initialized = false;
 
@@ -40,7 +43,10 @@ export class VencordMobile {
         // 1. Install Metro interceptor hooks
         metroInterceptor.install();
 
-        // 2. Initialize Plugin Context
+        // 2. Setup Vencord Desktop compatibility layer
+        setupVencordCompatAPI();
+
+        // 3. Initialize Plugin Context
         const context: PluginContext = {
             metro: this.metro,
             patcher: this.patcher,
@@ -51,11 +57,12 @@ export class VencordMobile {
 
         this.plugins.initialize(context);
 
-        // 3. Register built-in plugins
+        // 4. Register built-in plugins
         this.plugins.register(silentTypingPlugin);
         this.plugins.register(customTimestampsPlugin);
         this.plugins.register(showHiddenChannelsPlugin);
         this.plugins.register(developerToolsPlugin);
+        this.plugins.register(disableCallIdlePlugin);
 
         // 4. Hook Settings navigation
         this.hookSettings();
@@ -102,3 +109,4 @@ export * from "./patcher/index.js";
 export * from "./api/storage.js";
 export * from "./api/ui.js";
 export * from "./ui/SettingsView.js";
+export * from "./compat/vencordPluginAdapter.js";

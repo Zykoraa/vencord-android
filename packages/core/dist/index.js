@@ -3,8 +3,9 @@ import { metroFinder } from "./metro/finder.js";
 import { patcher } from "./patcher/index.js";
 import { storage } from "./api/storage.js";
 import { ui } from "./api/ui.js";
-import { pluginManager, silentTypingPlugin, customTimestampsPlugin, showHiddenChannelsPlugin, developerToolsPlugin } from "@vencord-mobile/plugins";
+import { pluginManager, silentTypingPlugin, customTimestampsPlugin, showHiddenChannelsPlugin, developerToolsPlugin, disableCallIdlePlugin } from "@vencord-mobile/plugins";
 import { SettingsView } from "./ui/SettingsView.js";
+import { setupVencordCompatAPI, adaptVencordPlugin } from "./compat/vencordPluginAdapter.js";
 const logger = {
     log: (...args) => console.log("[VencordMobile]", ...args),
     info: (...args) => console.info("[VencordMobile]", ...args),
@@ -19,6 +20,7 @@ export class VencordMobile {
     ui = ui;
     plugins = pluginManager;
     logger = logger;
+    adaptVencordPlugin = adaptVencordPlugin;
     initialized = false;
     init() {
         if (this.initialized)
@@ -27,7 +29,9 @@ export class VencordMobile {
         logger.info(`Initializing Vencord Mobile v${this.version}...`);
         // 1. Install Metro interceptor hooks
         metroInterceptor.install();
-        // 2. Initialize Plugin Context
+        // 2. Setup Vencord Desktop compatibility layer
+        setupVencordCompatAPI();
+        // 3. Initialize Plugin Context
         const context = {
             metro: this.metro,
             patcher: this.patcher,
@@ -36,11 +40,12 @@ export class VencordMobile {
             logger: this.logger,
         };
         this.plugins.initialize(context);
-        // 3. Register built-in plugins
+        // 4. Register built-in plugins
         this.plugins.register(silentTypingPlugin);
         this.plugins.register(customTimestampsPlugin);
         this.plugins.register(showHiddenChannelsPlugin);
         this.plugins.register(developerToolsPlugin);
+        this.plugins.register(disableCallIdlePlugin);
         // 4. Hook Settings navigation
         this.hookSettings();
         logger.info("Vencord Mobile initialized successfully!");
@@ -79,4 +84,5 @@ export * from "./patcher/index.js";
 export * from "./api/storage.js";
 export * from "./api/ui.js";
 export * from "./ui/SettingsView.js";
+export * from "./compat/vencordPluginAdapter.js";
 //# sourceMappingURL=index.js.map

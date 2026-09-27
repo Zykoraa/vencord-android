@@ -1,3 +1,4 @@
+import { adaptVencordPlugin } from "./compat/vencordPluginAdapter.js";
 export declare class VencordMobile {
     readonly version = "0.1.0";
     readonly metro: import("./index.js").MetroFinder;
@@ -11,6 +12,7 @@ export declare class VencordMobile {
         warn: (...args: any[]) => void;
         error: (...args: any[]) => void;
     };
+    readonly adaptVencordPlugin: typeof adaptVencordPlugin;
     private initialized;
     init(): void;
     private hookSettings;
@@ -22,4 +24,5 @@ export * from "./patcher/index.js";
 export * from "./api/storage.js";
 export * from "./api/ui.js";
 export * from "./ui/SettingsView.js";
+export * from "./compat/vencordPluginAdapter.js";
 //# sourceMappingURL=index.d.ts.map

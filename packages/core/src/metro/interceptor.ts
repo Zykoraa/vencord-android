@@ -43,9 +43,9 @@ export class MetroInterceptor {
     public install() {
         const g = this.targetScope;
 
-        // Hook Metro's __d (define)
-        if (typeof g.__d === "function") {
-            this.originalDefine = g.__d.__original || g.__d;
+        const wrapDefine = (orig: any) => {
+            if (!orig || orig.__vencordHooked) return orig;
+            this.originalDefine = orig.__original || orig;
 
             const interceptedDefine = (factory: MetroModuleFactory, id: number | string, depMap: any[]) => {
                 const entry: MetroModuleEntry = {
@@ -78,12 +78,12 @@ export class MetroInterceptor {
 
             interceptedDefine.__vencordHooked = true;
             interceptedDefine.__original = this.originalDefine;
-            g.__d = interceptedDefine;
-        }
+            return interceptedDefine;
+        };
 
-        // Hook Metro's __r (require)
-        if (typeof g.__r === "function") {
-            this.originalRequire = g.__r.__original || g.__r;
+        const wrapRequire = (orig: any) => {
+            if (!orig || orig.__vencordHooked) return orig;
+            this.originalRequire = orig.__original || orig;
 
             const interceptedRequire = (id: number | string) => {
                 const exports = this.originalRequire.call(g, id);
@@ -101,17 +101,58 @@ export class MetroInterceptor {
 
             interceptedRequire.__vencordHooked = true;
             interceptedRequire.__original = this.originalRequire;
-            g.__r = interceptedRequire;
+            return interceptedRequire;
+        };
+
+        let currentD = typeof g.__d === "function" ? wrapDefine(g.__d) : undefined;
+        try {
+            Object.defineProperty(g, "__d", {
+                configurable: true,
+                enumerable: true,
+                get: () => currentD,
+                set: (val: any) => {
+                    currentD = wrapDefine(val);
+                }
+            });
+        } catch {
+            if (typeof g.__d === "function") {
+                g.__d = wrapDefine(g.__d);
+            }
+        }
+
+        let currentR = typeof g.__r === "function" ? wrapRequire(g.__r) : undefined;
+        try {
+            Object.defineProperty(g, "__r", {
+                configurable: true,
+                enumerable: true,
+                get: () => currentR,
+                set: (val: any) => {
+                    currentR = wrapRequire(val);
+                }
+            });
+        } catch {
+            if (typeof g.__r === "function") {
+                g.__r = wrapRequire(g.__r);
+            }
         }
     }
 
     public uninstall() {
         const g = this.targetScope;
-        if (this.originalDefine) {
-            g.__d = this.originalDefine;
-        }
-        if (this.originalRequire) {
-            g.__r = this.originalRequire;
+        try {
+            Object.defineProperty(g, "__d", {
+                configurable: true,
+                writable: true,
+                value: this.originalDefine || undefined
+            });
+            Object.defineProperty(g, "__r", {
+                configurable: true,
+                writable: true,
+                value: this.originalRequire || undefined
+            });
+        } catch {
+            if (this.originalDefine) g.__d = this.originalDefine;
+            if (this.originalRequire) g.__r = this.originalRequire;
         }
         this.modules.clear();
         this.exportsCache.clear();

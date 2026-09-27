@@ -1,0 +1,13 @@
+{
+  "name": "@vencord-mobile/patcher",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "vencord-patcher": "./bin/cli.js"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/server.js"
+  }
+}

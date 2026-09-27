@@ -1,0 +1,13 @@
+{
+  "name": "@vencord-mobile/plugins",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.5"
+  }
+}
